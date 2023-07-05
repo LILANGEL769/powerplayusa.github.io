@@ -16,6 +16,10 @@ class Politician(db.Model):
     party = db.Column(db.String(100))
     bio = db.Column(db.Text)
     avatar = db.Column(db.String(100))
+    running_for_governor = db.Column(db.Boolean, default=False)
+    running_for_senate_position1 = db.Column(db.Boolean, default=False)
+    running_for_senate_position2 = db.Column(db.Boolean, default=False)
+    running_for_representative = db.Column(db.Boolean, default=False)
 
     def __init__(self, name, gender, party, bio, avatar):
         self.name = name
@@ -184,12 +188,28 @@ def state(state_id):
 @app.route('/enter_primary', methods=['GET', 'POST'])
 def enter_primary():
     if request.method == 'POST':
-        # Handle the form submission for the 'enter_primary' endpoint
-        # You can add your own implementation here
+        # Retrieve the logged-in politician based on the session username
+        politician = Politician.query.filter_by(name=session['username']).first()
+
+        # Check if the politician is already running for any position
+        if politician and not (politician.running_for_governor or politician.running_for_senate_position1 or politician.running_for_senate_position2 or politician.running_for_representative):
+            position = request.form['position']
+
+            # Update the politician's record in the database based on the selected position
+            if position == 'Governor':
+                politician.running_for_governor = True
+            elif position == 'Senate Class 1':
+                politician.running_for_senate_position1 = True
+            elif position == 'Senate Class 2':
+                politician.running_for_senate_position2 = True
+            elif position == 'Representative':
+                politician.running_for_representative = True
+
+            db.session.commit()
 
         return redirect('/')  # Redirect to the home page after form submission
 
-    return render_template('enter_primary.html')
+    return render_template('state.html')
 
 @app.route('/enter_general_election', methods=['GET', 'POST'])
 def enter_general_election():
@@ -202,6 +222,86 @@ def enter_general_election():
     return render_template('enter_general_election.html')
 
 @app.route('/login', methods=['GET', 'POST'])
+
+@app.route('/join_primary/governor', methods=['POST'])
+def join_primary_governor():
+    if request.method == 'POST':
+        # Retrieve the logged-in politician based on the session username
+        politician = Politician.query.filter_by(name=session['username']).first()
+
+        # Check if the politician is already running for any position
+        if politician and not (politician.running_for_governor or politician.running_for_senate_position1 or politician.running_for_senate_position2 or politician.running_for_representative):
+            # Update the politician's record in the database to indicate primary participation
+            politician.running_for_governor = True
+            db.session.commit()
+
+            # Render the template with the updated politician data
+            state = State.query.first()
+            return render_template('state.html', politician=politician, state=state)
+
+    # Redirect to the home page if the form submission is invalid
+    return redirect('/')
+
+
+@app.route('/join_primary/senate1', methods=['POST'])
+def join_primary_senate1():
+    if request.method == 'POST':
+        # Retrieve the logged-in politician based on the session username
+        politician = Politician.query.filter_by(name=session['username']).first()
+
+        # Check if the politician is already running for any position
+        if politician and not (politician.running_for_governor or politician.running_for_senate_position1 or politician.running_for_senate_position2 or politician.running_for_representative):
+            # Update the politician's record in the database to indicate primary participation
+            politician.running_for_senate_position1 = True
+            db.session.commit()
+
+            # Render the template with the updated politician data
+            state = State.query.first()
+            return render_template('state.html', politician=politician, state=state)
+
+    # Redirect to the home page if the form submission is invalid
+    return redirect('/')
+
+
+@app.route('/join_primary/senate2', methods=['POST'])
+def join_primary_senate2():
+    if request.method == 'POST':
+        # Retrieve the logged-in politician based on the session username
+        politician = Politician.query.filter_by(name=session['username']).first()
+
+        # Check if the politician is already running for any position
+        if politician and not (politician.running_for_governor or politician.running_for_senate_position1 or politician.running_for_senate_position2 or politician.running_for_representative):
+            # Update the politician's record in the database to indicate primary participation
+            politician.running_for_senate_position2 = True
+            db.session.commit()
+
+            # Render the template with the updated politician data
+            state = State.query.first()
+            return render_template('state.html', politician=politician, state=state)
+
+    # Redirect to the home page if the form submission is invalid
+    return redirect('/')
+
+
+@app.route('/join_primary/representative', methods=['POST'])
+def join_primary_representative():
+    if request.method == 'POST':
+        # Retrieve the logged-in politician based on the session username
+        politician = Politician.query.filter_by(name=session['username']).first()
+
+        # Check if the politician is already running for any position
+        if politician and not (politician.running_for_governor or politician.running_for_senate_position1 or politician.running_for_senate_position2 or politician.running_for_representative):
+            # Update the politician's record in the database to indicate primary participation
+            politician.running_for_representative = True
+            db.session.commit()
+
+            # Render the template with the updated politician data
+            state = State.query.first()
+            return render_template('state.html', politician=politician, state=state)
+
+    # Redirect to the home page if the form submission is invalid
+    return redirect('/')
+
 def login():
     if request.method == 'POST':
         username = request.form['name']
@@ -221,6 +321,11 @@ def logout():
     # Clear the session data to log out the user
     session.clear()
     return redirect('/')
+
+
+@app.template_global()
+def getCookie(cookie_name):
+	return request.cookies.get(cookie_name)
 
 if __name__ == '__main__':
     with app.app_context():
