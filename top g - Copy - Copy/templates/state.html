@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ state.name }} Information</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>{{ state.name }} Information</h1>
+
+    <h2>Population: {{ state.population }}</h2>
+    <h2>Social Stance: {{ state.social_stance }}</h2>
+    <h2>Economic Stance: {{ state.economic_stance }}</h2>
+    <h2>Governor Salary: {{ state.governor_salary }}</h2>
+    <h2>Senator Salary: {{ state.senator_salary }}</h2>
+    <h2>Lt. Governor Salary: {{ state.lt_governor_salary }}</h2>
+    <h2>Representative Salary: {{ state.representative_salary }}</h2>
+    <h2>Ranked Choice Voting: {{ state.ranked_choice_voting }}</h2>
+    <h2>Term Limit: {{ state.term_limit }}</h2>
+
+    <h2>Governor: {{ state.governor.username }}</h2>
+    <h2>Lt. Governor: {{ state.lt_governor.username }}</h2>
+    <h2>Senators:</h2>
+    <ul>
+        <li>{{ state.senator1.username }} (Class {{ state.senator1.senate_class }})</li>
+        <li>{{ state.senator2.username }} (Class {{ state.senator2.senate_class }})</li>
+    </ul>
+    <h2>Representatives: {{ state.representative.seat_count }}</h2>
+    <ul>
+        <li>{{ state.representative.username }}</li>
+    </ul>
+
+    {% if politician %}
+        <p>Welcome, {{ politician.name }}!</p>
+
+        <!-- Primary Election Form for Governor -->
+        {% if politician.party == 'Democratic' or politician.party == 'Republican' %}
+            <form action="/join_primary/governor" method="POST">
+                <h4>Governor:</h4>
+                <select name="party">
+                    <option value="{{ politician.party }}" selected>{{ politician.party }}</option>
+                </select>
+                <input type="submit" value="Join Primary">
+            </form>
+        {% endif %}
+
+        <!-- Primary Election Form for Senate Class {{ state.senator1.senate_class }} -->
+        {% if politician.party == 'Democratic' or politician.party == 'Republican' %}
+            <form action="/join_primary/senate1" method="POST">
+                <h4>Senate Class {{ state.senator1.senate_class }}:</h4>
+                <select name="party">
+                    <option value="{{ politician.party }}" selected>{{ politician.party }}</option>
+                </select>
+                <input type="submit" value="Join Primary">
+            </form>
+        {% endif %}
+
+        <!-- Primary Election Form for Senate Class {{ state.senator2.senate_class }} -->
+        {% if politician.party == 'Democratic' or politician.party == 'Republican' %}
+            <form action="/join_primary/senate2" method="POST">
+                <h4>Senate Class {{ state.senator2.senate_class }}:</h4>
+                <select name="party">
+                    <option value="{{ politician.party }}" selected>{{ politician.party }}</option>
+                </select>
+                <input type="submit" value="Join Primary">
+            </form>
+        {% endif %}
+
+        <!-- Primary Election Form for Representative -->
+        {% if politician.party == 'Democratic' or politician.party == 'Republican' %}
+            <form action="/join_primary/representative" method="POST">
+                <h4>Representative:</h4>
+                <select name="party">
+                    <option value="{{ politician.party }}" selected>{{ politician.party }}</option>
+                </select>
+                <input type="submit" value="Join Primary">
+            </form>
+        {% endif %}
+
+    {% else %}
+        <p>Welcome!</p>
+    {% endif %}
+
+    <!-- Display Primary Election Results -->
+    {% if primary_results %}
+        <h2>Primary Election Results:</h2>
+        {% for primary_result in primary_results %}
+            <h4>{{ primary_result.office }} ({{ primary_result.party }})</h4>
+            <p>Candidate: {{ primary_result.candidate }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Display Submitted Form Data -->
+    {% if submitted_form %}
+        <h2>Submitted Form Data:</h2>
+        <h4>{{ submitted_form.position }} ({{ submitted_form.party }})</h4>
+        <p>Candidate: {{ submitted_form.candidate }}</p>
+    {% endif %}
+
+</body>
+</html>

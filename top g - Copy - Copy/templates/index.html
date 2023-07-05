@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Political Simulator Game</title>
+  <style>
+    /* CSS styles go here */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 36px;
+    }
+
+    nav {
+      background-color: #eee;
+      padding: 10px;
+      text-align: center;
+    }
+
+    nav a {
+      color: #333;
+      text-decoration: none;
+      padding: 10px;
+      margin: 0 5px;
+    }
+
+    section {
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .footer {
+      background-color: #333;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+  </style>
+  <script>
+    function startNewGame() {
+      // Redirect the player to the create_politician.html webpage
+      window.location.href = "create_politician";
+    }
+	    function startLoadGame() {
+      // Redirect the player to the login.html webpage
+      window.location.href = "login";
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Political Simulator Game</h1>
+    </header>
+
+    <nav>
+      <a href="#" onclick="startNewGame()">New Game</a>
+      <a href="#" onclick="startLoadGame()">Load Game</a>
+      <a href="#">Scenarios</a>
+      <a href="#">Options</a>
+      <a href="#">Exit</a>
+    </nav>
+
+    <section>
+      <h2>Game Overview</h2>
+      <p>Discover the thrilling world of politics in this immersive political simulator game. Experience the complexities of governing, making tough decisions, and navigating intricate political landscapes. Shape your nation's destiny and leave your mark in history.</p>
+    </section>
+
+    <section>
+      <h2>Scenario Selection</h2>
+      <div class="scenario-card">
+        <h3>Scenario 1</h3>
+        <p>Description of the scenario goes here.</p>
+        <button>Select</button>
+      </div>
+      <!-- Additional scenario cards -->
+    </section>
+
+    <section>
+      <h2>Tutorials and Guides</h2>
+      <p>Get started with our comprehensive tutorials and guides that cover the game mechanics, controls, and strategies. Learn how to navigate the political landscape and make impactful decisions to succeed as a leader.</p>
+    </section>
+
+    <section class="settings">
+      <h2>Settings</h2>
+      <p>Customize your game preferences:</p>
+      <!-- Include options for audio, graphics, language, etc. -->
+    </section>
+  </div>
+
+  <footer class="footer">
+    &copy; 2023 Political Simulator Game. All rights reserved.
+  </footer>
+
+</body>
+</html>
