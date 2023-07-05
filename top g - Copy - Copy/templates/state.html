@@ -3,6 +3,82 @@
 <head>
     <title>{{ state.name }} Information</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+<script>
+    function setCookie(name, value, days) {
+        var expires = "";
+        if (days) {
+            var date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "") + expires + "; path=/";
+    }
+
+    function getCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+    }
+
+    function joinPrimary(form) {
+        // Retrieve the form data
+        var position = form.getAttribute('data-position');
+        var party = form.party.value;
+        var candidate = form.getAttribute('data-candidate');
+
+        // Check if already running for any position
+        var runningCookies = document.cookie.split(';');
+        for (var i = 0; i < runningCookies.length; i++) {
+            var c = runningCookies[i];
+            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+            var cookiePosition = c.split('=')[0];
+            if (cookiePosition !== position && cookiePosition !== "") {
+                alert("You are already running for another position!");
+                return false;
+            }
+        }
+
+        // Check if already running for this position
+        var runningCookie = getCookie(position);
+        if (runningCookie) {
+            alert("You are already running for this position!");
+            return false;
+        }
+
+        // Update the page dynamically
+        var positionElement = document.querySelector('[data-position="' + position + '"]');
+        positionElement.innerHTML = positionElement.innerHTML + ' - ' + candidate + ' (' + party + ')';
+
+        // Set the running status in a cookie
+        setCookie(position, 'running', 365);
+
+        // Reset the form
+        form.reset();
+
+        // Prevent the form from submitting and reloading the page
+        return false;
+    }
+
+    function withdrawPrimary(position) {
+        // Remove the running status from the cookie
+        setCookie(position, '', -1);
+
+        // Update the page dynamically
+        var positionElement = document.querySelector('[data-position="' + position + '"]');
+        positionElement.innerHTML = position;
+
+        // Show a success message
+        alert("You have successfully withdrawn from the primary.");
+
+        // Prevent the default link behavior
+        return false;
+    }
+</script>
 </head>
 <body>
     <h1>{{ state.name }} Information</h1>
@@ -34,67 +110,61 @@
 
         <!-- Primary Election Form for Governor -->
         {% if politician.party == 'Democratic' or politician.party == 'Republican' %}
-            <form action="/join_primary/governor" method="POST">
+            <form data-position="Governor" data-candidate="{{ politician.name }}" onsubmit="return joinPrimary(this)">
                 <h4>Governor:</h4>
                 <select name="party">
                     <option value="{{ politician.party }}" selected>{{ politician.party }}</option>
                 </select>
                 <input type="submit" value="Join Primary">
             </form>
+            {% if getCookie('Governor') %}
+                <button onclick="return withdrawPrimary('Governor')">Withdraw Primary</button>
+            {% endif %}
         {% endif %}
 
-        <!-- Primary Election Form for Senate Class {{ state.senator1.senate_class }} -->
+        <!-- Primary Election Form for Senate Class 1 -->
         {% if politician.party == 'Democratic' or politician.party == 'Republican' %}
-            <form action="/join_primary/senate1" method="POST">
-                <h4>Senate Class {{ state.senator1.senate_class }}:</h4>
+            <form data-position="Senate Class 1" data-candidate="{{ politician.name }}" onsubmit="return joinPrimary(this)">
+                <h4>Senate Class 1:</h4>
                 <select name="party">
                     <option value="{{ politician.party }}" selected>{{ politician.party }}</option>
                 </select>
                 <input type="submit" value="Join Primary">
             </form>
+            {% if getCookie('Senate Class 1') %}
+                <button onclick="return withdrawPrimary('Senate Class 1')">Withdraw Primary</button>
+            {% endif %}
         {% endif %}
 
-        <!-- Primary Election Form for Senate Class {{ state.senator2.senate_class }} -->
+        <!-- Primary Election Form for Senate Class 2 -->
         {% if politician.party == 'Democratic' or politician.party == 'Republican' %}
-            <form action="/join_primary/senate2" method="POST">
-                <h4>Senate Class {{ state.senator2.senate_class }}:</h4>
+            <form data-position="Senate Class 2" data-candidate="{{ politician.name }}" onsubmit="return joinPrimary(this)">
+                <h4>Senate Class 2:</h4>
                 <select name="party">
                     <option value="{{ politician.party }}" selected>{{ politician.party }}</option>
                 </select>
                 <input type="submit" value="Join Primary">
             </form>
+            {% if getCookie('Senate Class 2') %}
+                <button onclick="return withdrawPrimary('Senate Class 2')">Withdraw Primary</button>
+            {% endif %}
         {% endif %}
 
         <!-- Primary Election Form for Representative -->
         {% if politician.party == 'Democratic' or politician.party == 'Republican' %}
-            <form action="/join_primary/representative" method="POST">
+            <form data-position="Representative" data-candidate="{{ politician.name }}" onsubmit="return joinPrimary(this)">
                 <h4>Representative:</h4>
                 <select name="party">
                     <option value="{{ politician.party }}" selected>{{ politician.party }}</option>
                 </select>
                 <input type="submit" value="Join Primary">
             </form>
+            {% if getCookie('Representative') %}
+                <button onclick="return withdrawPrimary('Representative')">Withdraw Primary</button>
+            {% endif %}
         {% endif %}
-
     {% else %}
-        <p>Welcome!</p>
+        <p>Please log in to participate in the primary elections.</p>
     {% endif %}
-
-    <!-- Display Primary Election Results -->
-    {% if primary_results %}
-        <h2>Primary Election Results:</h2>
-        {% for primary_result in primary_results %}
-            <h4>{{ primary_result.office }} ({{ primary_result.party }})</h4>
-            <p>Candidate: {{ primary_result.candidate }}</p>
-        {% endfor %}
-    {% endif %}
-
-    <!-- Display Submitted Form Data -->
-    {% if submitted_form %}
-        <h2>Submitted Form Data:</h2>
-        <h4>{{ submitted_form.position }} ({{ submitted_form.party }})</h4>
-        <p>Candidate: {{ submitted_form.candidate }}</p>
-    {% endif %}
-
 </body>
 </html>
