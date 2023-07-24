@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>{{ state.name }} Elections</title>
+</head>
+<body>
+  <h1>{{ state.name }} Elections</h1>
+  <p><a href="{{ url_for('polling') }}">Back to Polling</a></p>
+
+{% if state.id == 1 %}
+  <img src="{{ url_for('static', filename='california.svg') }}" alt="Election Map">
+{% endif %}
+
+<h2>Primary Elections</h2>
+{% for position, parties in primaries.items() %}
+    <h3>{{ position.title() }}</h3>
+    {% for party, politicians in parties.items() %}
+        <h4>{{ party.title() }}</h4>
+        <ul>
+            {% for politician in politicians %}
+                <li>{{ politician['politician'].name }} ({{ (politician['poll_percent'])|round(1) }}% of primary votes)</li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+{% endfor %}
+<h2>General Elections</h2>
+{% for position, politicians in general_elections.items() %}
+    <h3>{{ position.title() }}</h3>
+    <ul>
+        {% for politician in politicians %}
+            <li>
+              {{ politician['politician'].name }} 
+              ({{ (politician['poll_percent'] * 100)|round(1) }}% of votes, 
+              {{ (politician['poll_percent'] * state.population)|int }} estimated supporters)
+            </li>
+        {% endfor %}
+    </ul>
+{% endfor %}
+</body>
+</html>

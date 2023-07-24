@@ -2,90 +2,86 @@
 <html>
 <head>
     <title>Create Politician</title>
+    <!-- Add Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Add your custom styles -->
+    <style>
+        body {
+            padding: 50px;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            font-weight: bold;
+        }
+        textarea {
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
     <h1>Create Politician</h1>
     <form method="POST" enctype="multipart/form-data">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required><br><br>
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
 
-        <label for="gender">Gender:</label>
-        <input type="radio" id="male" name="gender" value="Male" required>
-        <label for="male">Male</label>
-        <input type="radio" id="female" name="gender" value="Female" required>
-        <label for="female">Female</label><br><br>
+        <div class="form-group">
+            <label for="gender">Gender:</label><br>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="gender" id="male" value="Male" required>
+                <label class="form-check-label" for="male">Male</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="gender" id="female" value="Female" required>
+                <label class="form-check-label" for="female">Female</label>
+            </div>
+        </div>
 
-        <label for="state">State:</label>
-        <select id="state" name="state" required>
-            <option value="" disabled selected>Select State</option>
-            <option value="Alabama">Alabama</option>
-            <option value="Alaska">Alaska</option>
-            <option value="Arizona">Arizona</option>
-            <option value="Arkansas">Arkansas</option>
-            <option value="California">California</option>
-            <option value="Colorado">Colorado</option>
-            <option value="Connecticut">Connecticut</option>
-            <option value="Delaware">Delaware</option>
-            <option value="Florida">Florida</option>
-            <option value="Georgia">Georgia</option>
-            <option value="Hawaii">Hawaii</option>
-            <option value="Idaho">Idaho</option>
-            <option value="Illinois">Illinois</option>
-            <option value="Indiana">Indiana</option>
-            <option value="Iowa">Iowa</option>
-            <option value="Kansas">Kansas</option>
-            <option value="Kentucky">Kentucky</option>
-            <option value="Louisiana">Louisiana</option>
-            <option value="Maine">Maine</option>
-            <option value="Maryland">Maryland</option>
-            <option value="Massachusetts">Massachusetts</option>
-            <option value="Michigan">Michigan</option>
-            <option value="Minnesota">Minnesota</option>
-            <option value="Mississippi">Mississippi</option>
-            <option value="Missouri">Missouri</option>
-            <option value="Montana">Montana</option>
-            <option value="Nebraska">Nebraska</option>
-            <option value="Nevada">Nevada</option>
-            <option value="New Hampshire">New Hampshire</option>
-            <option value="New Jersey">New Jersey</option>
-            <option value="New Mexico">New Mexico</option>
-            <option value="New York">New York</option>
-            <option value="North Carolina">North Carolina</option>
-            <option value="North Dakota">North Dakota</option>
-            <option value="Ohio">Ohio</option>
-            <option value="Oklahoma">Oklahoma</option>
-            <option value="Oregon">Oregon</option>
-            <option value="Pennsylvania">Pennsylvania</option>
-            <option value="Rhode Island">Rhode Island</option>
-            <option value="South Carolina">South Carolina</option>
-            <option value="South Dakota">South Dakota</option>
-            <option value="Tennessee">Tennessee</option>
-            <option value="Texas">Texas</option>
-            <option value="Utah">Utah</option>
-            <option value="Vermont">Vermont</option>
-            <option value="Virginia">Virginia</option>
-            <option value="Washington">Washington</option>
-            <option value="West Virginia">West Virginia</option>
-            <option value="Wisconsin">Wisconsin</option>
-            <option value="Wyoming">Wyoming</option>
-        </select><br><br>
+        <div class="form-group">
+            <label for="state_id">State:</label>
+            <select id="state_id" class="form-control" name="state_id" required>
+                <option value="" disabled selected>Select State</option>
+                {% for state in states %}
+                    <option value="{{ state.id }}">{{ state.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-        <label for="party">Party:</label>
-        <select id="party" name="party" required>
-            <option value="" disabled selected>Select Party</option>
-            <option value="Libertarian">Libertarian</option>
-            <option value="Socialist">Socialist</option>
-            <option value="Democrat">Democrat</option>
-            <option value="Republican">Republican</option>
-        </select><br><br>
+        <div class="form-group">
+            <label for="party">Party:</label>
+            <select id="party" class="form-control" name="party" required>
+                <option value="" disabled selected>Select Party</option>
+                <option value="Libertarian">Libertarian</option>
+                <option value="Socialist">Socialist</option>
+                <option value="Democrat">Democrat</option>
+                <option value="Republican">Republican</option>
+            </select>
+        </div>
 
-        <label for="bio">Bio:</label><br>
-        <textarea id="bio" name="bio" rows="4" cols="50" required></textarea><br><br>
+        <div class="form-group">
+            <label for="bio">Bio:</label>
+            <textarea id="bio" class="form-control" name="bio" rows="4" cols="50" required></textarea>
+        </div>
 
-        <label for="avatar">Avatar:</label>
-        <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg" required><br><br>
+        <div class="form-group">
+            <label for="avatar">Avatar:</label>
+            <input type="file" class="form-control-file" id="avatar" name="avatar" accept="image/png, image/jpeg" required>
+        </div>
 
-        <input type="submit" value="Create Politician">
+        <button type="submit" class="btn btn-primary">Create Politician</button>
     </form>
+
+    <!-- Add Bootstrap JS (optional) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

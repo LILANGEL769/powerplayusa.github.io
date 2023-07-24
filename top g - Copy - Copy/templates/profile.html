@@ -2,14 +2,97 @@
 <html>
 <head>
     <title>Politician Profile</title>
+    <!-- Add Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Add your custom styles -->
+    <style>
+        body {
+            padding: 50px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .dark-box {
+            background-color: #343a40;
+            padding: 10px;
+            border-radius: 5px;
+            color: white;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .avatar-container {
+            display: flex;
+            align-items: flex-start;
+        }
+        .avatar {
+            max-width: 500px;
+            max-height: 500px;
+            margin-right: 20px;
+        }
+    </style>
+	    <!-- Add Bootstrap JS (optional) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Add jQuery (required for the fundraiser functionality) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("#fundraiserForm").submit(function(e){
+                e.preventDefault();
+                var politician_id = $("#fundraiserForm input[name=politician_id]").val();
+
+                $.post("/do_fundraiser",
+                {
+                    politician_id: politician_id
+                },
+                function(data, status){
+                    if (data.error) {
+                        alert("Error: " + data.error);
+                    } else {
+                        alert("Message: " + data.message);
+                        location.reload();  // Refresh the page
+                    }
+                });
+            });
+        });
+    </script>
 </head>
 <body>
-    <h1>Politician Profile</h1>
+    <h1 class="text-center">Politician Profile</h1>
     <h2>{{ politician.name }}</h2>
-    <p>Gender: {{ politician.gender }}</p>
-    <p>Party: {{ politician.party }}</p>
-    <p>Bio: {{ politician.bio }}</p>
-    <img src="{{ url_for('static', filename='avatars/' + politician.avatar) }}" alt="Avatar">
-    <p><a href="{{ url_for('index') }}">Back to Home</a></p>
+    <div class="dark-box">
+        <p>Gender: {{ politician.gender }}</p>
+        <p>State: {{ get_state_name(politician.state_id) }}</p>
+        <p>Party: {{ politician.party }}</p>
+        <p>Bio: {{ politician.bio }}</p>
+        <p>Money: ${{ "{:,.2f}".format(politician.money) }}</p>
+        <p>Hourly Income: ${{ "{:,.2f}".format(politician.hourly_money_generation) }}</p>
+    </div>
+    <div class="avatar-container">
+        <img src="{{ url_for('static', filename='avatars/' + politician.avatar) }}" alt="Avatar" class="avatar">
+    </div>
+    <p class="mt-4"><a href="{{ url_for('index') }}">Back to Home</a></p>
+
+    <!-- Fundraiser box -->
+    <div id="fundraiserBox" class="mt-4">
+    {% if 'politician_id' in session and session['politician_id']|int == politician.id %}
+        <form id="fundraiserForm" class="mb-3">
+            <input type="hidden" name="politician_id" value="{{ politician.id }}">
+            <button type="submit" class="btn btn-primary">Do Fundraiser</button>
+        </form>
+    {% endif %}
+    </div>
+
+    <!-- Flashed messages -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flashes">
+          {% for message in messages %}
+            <div class="alert alert-warning">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
 </body>
 </html>

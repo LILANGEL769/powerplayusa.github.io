@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>State Polling</title>
+    <!-- Add Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Add your custom styles -->
+    <style>
+        body {
+            padding: 50px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .state-link {
+            margin-bottom: 10px;
+        }
+
+        /* Dynamically generated styles for county colors in the SVG maps */
+        {% for county_id, color in governor_election_results.items() %}
+        #governor_elections .{{ county_id }} {
+            fill: {{ color }};
+        }
+        {% endfor %}
+        {% for county_id, color in senate_election_results.items() %}
+        #senate_elections .{{ county_id }} {
+            fill: {{ color }};
+        }
+        {% endfor %}
+    </style>
+</head>
+<body>
+    <h1>State Polling</h1>
+    <!-- Add the SVG maps -->
+    <h2>Governor Elections Map</h2>
+    <div id="governor_elections">
+        <img src="{{ url_for('static', filename='governor_elections.svg') }}" alt="Governor Elections Map" style="display: block; margin: 0 auto;">
+    </div>
+    <h2>Senate Elections Map</h2>
+    <div id="senate_elections">
+        <img src="{{ url_for('static', filename='senate_elections.svg') }}" alt="Senate Elections Map" style="display: block; margin: 0 auto;">
+    </div>
+    <div class="list-group">
+        {% for state in states %}
+            <a href="{{ url_for('electionstate', state_id=state.id) }}" class="list-group-item list-group-item-action state-link">{{ state.name }}</a>
+        {% endfor %}
+    </div>
+
+    <!-- Add Bootstrap JS (optional) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

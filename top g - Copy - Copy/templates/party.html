@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Party Information</title>
+    <!-- Add your CSS styles or include CSS file here -->
+</head>
+<body>
+    <header>
+        <h1>Party Information</h1>
+    </header>
+
+    <section>
+        <h2>Party Details</h2>
+        <div>
+            <h3>{{ party.name }}</h3>
+            <img src="{{ url_for('static', filename=party.logo) }}" alt="Party Logo">
+
+            <h4>Chair:</h4>
+            {% if party.chair.username %}
+                <p>{{ party.chair.username }}</p>
+            {% else %}
+                <p>No Chair Assigned</p>
+            {% endif %}
+
+            <h4>Vice Chair:</h4>
+            {% if party.vice_chair.username %}
+                <p>{{ party.vice_chair.username }}</p>
+            {% else %}
+                <p>No Vice Chair Assigned</p>
+            {% endif %}
+
+            <h4>Treasurer:</h4>
+            {% if party.treasurer.username %}
+                <p>{{ party.treasurer.username }}</p>
+            {% else %}
+                <p>No Treasurer Assigned</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <footer>
+        <!-- Add footer content here -->
+    </footer>
+</body>
+</html>
