@@ -1,0 +1,20 @@
+.navbar-nav > li{
+    padding-left:10px;
+    padding-right:10px;
+  }
+body {
+    background-color:azure;
+    background-size:cover;
+    font-family: 'Varela Round', sans-serif;
+    color:black;
+}
+.ppusa-title-card-bg {
+    background-image:url('https://i.postimg.cc/q7rXqbmt/ppusacapitol3.webp');
+    background-size:cover;
+}
+.ppusa-accent-color {
+    color:rgb(0, 170, 255);
+}
+.ppusa-accent-color-login {
+    background-color:rgb(0, 170, 255);
+}
