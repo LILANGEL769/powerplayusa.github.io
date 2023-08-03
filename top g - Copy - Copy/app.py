@@ -7,6 +7,8 @@ from flask_migrate import Migrate
 from sqlalchemy import UniqueConstraint, and_
 from apscheduler.schedulers.background import BackgroundScheduler
 import random
+import geojson
+import json
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///politicians.db'
@@ -15,6 +17,35 @@ app.secret_key = 'BARRACKHUSSEINOBAMANOCAPONAFATSTACK'
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)  # Add this line
 app.app_context().push()
+
+def get_current_year():
+    import datetime
+
+    # Define the start date
+    start_date = datetime.datetime(1960, 1, 1)
+
+    # Get the current date
+    current_date = datetime.datetime.now()
+
+    # Calculate the difference in minutes between the current date and the start date
+    difference = (current_date - start_date).total_seconds() / 60
+
+    # Calculate the current election year
+    # Since 1 election year = 2 real-life minutes, divide the difference by 2
+    current_year = 1960 + int(difference / 2)
+
+    return current_year
+
+def get_polling_data(state, candidates):
+    polling_data = {}
+
+    for candidate in candidates:
+        # Get the poll_percent for this candidate in this state
+        poll_percent = candidate.poll_percent  # Replace with actual method to get poll_percent
+
+        polling_data[candidate.name] = poll_percent
+
+    return polling_data
 
 def redistribute_poll_percentages(politicians):
     total_poll_percent = sum([politician['poll_percent'] for politician in politicians])
@@ -380,6 +411,38 @@ class OvalOffice(db.Model):
     president = db.relationship('Politician', foreign_keys=[president_id])
     vice_president = db.relationship('Politician', foreign_keys=[vice_president_id])
 
+class PresidentialPrimary(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    year = db.Column(db.Integer, nullable=False)
+    politician_id = db.Column(db.Integer, db.ForeignKey('politician.id'))
+    poll_percent = db.Column(db.Float, default=0.0)
+    rallies_run = db.Column(db.Integer, default=0)
+    ads_run = db.Column(db.Integer, default=0)
+    position = db.Column(db.String(100))
+
+    politician = db.relationship('Politician', backref='presidential_primaries')
+
+    def __init__(self, position, year, politician_id):
+        self.year = year
+        self.politician_id = politician_id
+        self.poll_percent = 0  # Set initial poll_percent to 0
+
+class PresidentialGeneralElection(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    year = db.Column(db.Integer, nullable=False)
+    politician_id = db.Column(db.Integer, db.ForeignKey('politician.id'))
+    is_ongoing = db.Column(db.Boolean, default=True)
+    poll_percent = db.Column(db.Float, default=0.0)
+    rallies_run = db.Column(db.Integer, default=0)
+    ads_run = db.Column(db.Integer, default=0)
+    position = db.Column(db.String(100))
+
+    def __init__(self, position, year, politician_id):
+        self.year = year
+        self.politician_id = politician_id
+        self.poll_percent = 0  # Set initial poll_percent to 0
+
+
 @app.route('/')
 def index():
     politicians = Politician.query.all()
@@ -607,21 +670,114 @@ def logout():
 
 @app.route('/polling', methods=['GET'])
 def polling():
-    states = State.query.all()  # Fetch all states directly from the State model
+    states = State.query.all()
+    primaries = PresidentialPrimary.query.all()
 
-    # Query for ongoing governor and senate elections.
-    ongoing_governor_elections = GovernorElection.query.filter_by(is_ongoing=True).all()
-    ongoing_senate_elections = SenateElection.query.filter_by(is_ongoing=True).all()
+    # Check if a politician is logged in
+    politician_id = session.get('politician_id', None)
 
-    # Create maps from county_id to the party of the leading candidate.
-    governor_election_results = {
-        election.county_id: election.leading_candidate.party for election in ongoing_governor_elections
-    }
-    senate_election_results = {
-        election.county_id: election.leading_candidate.party for election in ongoing_senate_elections
-    }
+    # Calculate the current year
+    import datetime
+    start_date = datetime.datetime(1960, 1, 1)
+    current_date = datetime.datetime.now()
+    difference = (current_date - start_date).total_seconds() / 60
+    current_year = 1960 + int(difference / 2)
 
-    return render_template('polling.html', states=states, governor_election_results=governor_election_results, senate_election_results=senate_election_results)
+    # Check if the logged in politician is registered for the current primary
+    if politician_id:
+        registered_primary = PresidentialPrimary.query.filter_by(politician_id=politician_id, year=current_year).first()
+    else:
+        registered_primary = None
+
+    # Fetch all democrat and republican candidates
+    democrat_candidates = [(primary.politician.name, primary.poll_percent) for primary in primaries if primary.politician.party == 'Democrat']
+    republican_candidates = [(primary.politician.name, primary.poll_percent) for primary in primaries if primary.politician.party == 'Republican']
+
+    state_data = {}
+    for state in states:
+        state_data[state.name] = {
+            'name': state.name,
+            'economic_stance': state.economic_stance,
+            'social_stance': state.social_stance,
+            'polling': {primary.politician.name: primary.poll_percent for primary in primaries}
+        }
+
+    # Print the state data
+    print(state_data)
+
+    return render_template('polling.html', states=states, state_data=state_data, democrat_candidates=democrat_candidates, republican_candidates=republican_candidates, registered=registered_primary is not None)
+
+@app.route('/register_presidential_candidate', methods=['POST'])
+def register_presidential_candidate():
+    if 'politician_id' not in session:
+        # If the user is not logged in, redirect them to the login page
+        return redirect(url_for('login'))
+
+    # Get the logged in politician's id from the session
+    politician_id = session['politician_id']
+
+    # Fetch the politician from the database using the id
+    politician = Politician.query.get(politician_id)
+
+    # If politician doesn't exist, handle appropriately (maybe redirect to an error page or login page)
+    if politician is None:
+        return redirect(url_for('login'))
+
+    import datetime
+
+    # Define the start date
+    start_date = datetime.datetime(1960, 1, 1)
+
+    # Get the current date
+    current_date = datetime.datetime.now()
+
+    # Calculate the difference in minutes between the current date and the start date
+    difference = (current_date - start_date).total_seconds() / 60
+
+    # Calculate the current election year
+    # Since 1 election year = 2 real-life minutes, divide the difference by 2
+    current_year = 1960 + int(difference / 2)
+
+    # Check if a primary already exists for the current year and the logged-in politician
+    existing_primary = PresidentialPrimary.query.filter_by(year=current_year, politician_id=politician.id).first()
+    if existing_primary:
+        # Primary already exists, redirect to the polling page
+        return redirect(url_for('polling'))
+
+    # Create a new PresidentialPrimary object
+    primary = PresidentialPrimary(position='President', year=current_year, politician_id=politician.id)
+
+    # Add the new primary to the database
+    db.session.add(primary)
+    db.session.commit()
+
+    return redirect(url_for('polling'))
+
+@app.route('/withdraw_presidential_candidate', methods=['POST'])
+def withdraw_presidential_candidate():
+    if 'politician_id' not in session:
+        # If the user is not logged in, redirect them to the login page
+        return redirect(url_for('login'))
+
+    # Fetch the politician by ID
+    politician = Politician.query.get(session['politician_id'])
+
+    # Check if the politician exists
+    if politician:
+        # Define the current year
+        current_year = get_current_year()
+
+        # Check if a primary exists for the current year and the logged-in politician
+        existing_primary = PresidentialPrimary.query.filter_by(year=current_year, politician_id=politician.id).first()
+        if existing_primary:
+            # Primary exists, delete it
+            db.session.delete(existing_primary)
+            db.session.commit()
+
+        return redirect(url_for('polling'))
+    else:
+        # Politician not found, return an error or handle it appropriately
+        return "Politician not found", 404
 
 @app.route('/electionstate/<int:state_id>')
 def electionstate(state_id):
@@ -831,12 +987,6 @@ def oval_office():
     president = Politician.query.get(current_office.president_id)
     vice_president = Politician.query.get(current_office.vice_president_id)
     return render_template('oval_office.html', president=president, vice_president=vice_president)
-
-@app.route('/electoral_college_map')
-def electoral_college_map():
-    with open('static/americamap.svg', 'r') as file:
-        svg_content = file.read()
-    return render_template('electoral_college_map.html', svg_content=svg_content)
 
 if __name__ == '__main__':
     with app.app_context():
