@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ state.name }} Information</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>   
+<script>  
+    $(document).ready(function(){
+        $("#signupForm").submit(function(e){
+            e.preventDefault();
+            var position = $("#position").val();
+            var user_id = $("#signupForm input[name=user_id]").val();  // Get the user_id from the signupForm data
+            var state_id = $("#signupForm input[name=state_id]").val();  // Get the state_id from the signupForm data
+
+            $.post("/signup",
+            {
+                user_id: user_id,
+                position: position,
+                state_id: state_id  // Include the state_id in the POST data
+            },
+            function(data, status){
+                alert("Data: " + data + "\nStatus: " + status);
+                location.reload();  // Refresh the page
+            });
+        });
+
+        $("#withdrawForm").submit(function(e){
+            e.preventDefault();
+            $.post("/withdraw",
+            function(data, status){
+                alert("Data: " + data + "\nStatus: " + status);
+                location.reload();  // Refresh the page
+            });
+        });
+
+        $("#rallyButton").click(function(e){
+            e.preventDefault();
+            $.post("/rally/{{ politician.id }}",
+            function(data, status){
+                location.reload();  // Refresh the page
+            });
+        });
+
+        $("#adsButton").click(function(e){
+            e.preventDefault();
+            $.post("/ads/{{ politician.id }}",
+            function(data, status){
+                location.reload();  // Refresh the page
+            });
+        });
+    });
+</script> 
+</head>
+<body>
+    <h1>{{ state.name }} Information</h1>
+
+    <h2>Population: {{ state.population }}</h2>
+    <h2>Social Stance: {{ state.social_stance }}</h2>
+    <h2>Economic Stance: {{ state.economic_stance }}</h2>
+    <h2>Governor Salary: {{ state.governor_salary }}</h2>
+    <h2>Senator Salary: {{ state.senator_salary }}</h2>
+    <h2>Lt. Governor Salary: {{ state.lt_governor_salary }}</h2>
+    <h2>Representative Salary: {{ state.representative_salary }}</h2>
+    <h2>Ranked Choice Voting: {{ state.ranked_choice_voting }}</h2>
+    <h2>Term Limit: {{ state.term_limit }}</h2>
+
+    <h2>Governor: {{ state.governor.name if state.governor else 'None' }}</h2>
+    <h2>Lt. Governor: {{ state.lt_governor.name if state.lt_governor else 'None' }}</h2>
+
+    <h2>Senators:</h2>
+    <ul>
+        <li>{{ state.senator1.name if state.senator1 else 'None' }}</li>
+        <li>{{ state.senator2.name if state.senator2 else 'None' }}</li>
+    </ul>
+
+    <h2>Representatives:</h2>
+    <ul>
+        <li>{{ state.representative.name if state.representative else 'None' }}</li>
+    </ul>
+    
+    {% if politician %}
+        <!-- Check if the user has already signed up for a primary -->
+        {% if not user_is_signed_up %}
+            <h2>Sign up for a primary</h2>
+            <form id="signupForm">
+                <label for="position">Position:</label>
+                <select name="position" id="position">
+                    <option value="governor">Governor</option>
+                    <option value="lt_governor">Lieutenant Governor</option>
+                    <option value="senator1">Senator Class 1</option>
+                    <option value="senator2">Senator Class 2</option>
+                    <option value="representative">Representative</option>
+                </select>
+                <!-- hidden field for user_id -->
+                <input type="hidden" name="user_id" value="{{ politician.id }}">
+                <!-- hidden field for state_id -->
+                <input type="hidden" name="state_id" value="{{ politician.state_id }}">
+                <input type="submit" value="Sign up">
+            </form>
+        {% else %}
+            <p>You have already signed up for a primary in your state.</p>
+        {% endif %}
+    {% else %}
+        <p>Please log in to sign up for a primary.</p>
+    {% endif %}
+
+    {% if user_is_signed_up or user_in_general %}
+        <form id="withdrawForm">
+            <input type="submit" value="Withdraw from Primary">
+        </form>
+
+        <div class="campaign-box">
+            <h2>Campaign</h2>
+            <p>Funds: {{ politician.money }}</p>
+            <button id="rallyButton">Rally ($80,000)</button>
+            <button id="adsButton">Ads ($120,000)</button>
+        </div>
+    {% endif %}
+
+    <h2>Elections</h2>
+    {% for position, politicians in primaries.items() %}
+        <h3>{{ position.title() }}</h3>
+        <ul>
+            {% for politician in politicians %}
+                <li>{{ politician['politician'].name }} ({{ politician['politician'].party }})</li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+    <h2>General Elections</h2>
+    {% for position, politicians in general_elections.items() %}
+        <h3>{{ position.title() }}</h3>
+        <ul>
+            {% for politician in politicians %}
+                <li>{{ politician['politician'].name }} ({{ politician['politician'].party }})</li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+</body>
+</html>

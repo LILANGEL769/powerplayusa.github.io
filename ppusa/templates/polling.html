@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>State Polling</title>
+    <!-- Add Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="/static/countymap/mapdata.js"></script>
+    <script src="/static/countymap/countymap.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script> <!-- Adding jQuery -->
+    <!-- Add your custom styles -->
+    <style>
+        body {
+            padding: 50px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .state-link {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>State Polling</h1>
+    <!-- Commented sections are kept as they are -->
+    <div class="list-group">
+        {% for state in states %}
+            <a href="{{ url_for('electionstate', state_id=state.id) }}" class="list-group-item list-group-item-action state-link">{{ state.name }}</a>
+        {% endfor %}
+    </div>
+    <div>
+        <div style="max-width: 700px">
+            <div id="map"></div>
+        </div>
+    </div>
+    <!-- Script to fetch county-level polling data and update the map -->
+    <script>
+        function updateCountyPollingMap(state_id) {
+            $.get("/get_county_polling/" + state_id, function(data) {
+                for (let i = 0; i < data.length; i++) {
+                    let county_data = data[i];
+                    let county_name = county_data['county_name'];
+                    let leading_politician = county_data['leading_politician'];
+                    let poll_percent = county_data['poll_percent'];
+                    console.log("County:", county_name, "Leading Politician:", leading_politician, "Polling Percent:", poll_percent);
+                }
+            });
+        }
+        updateCountyPollingMap(1);  // Placeholder state_id, replace with actual state ID as needed
+    </script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>{{ party.name }} - Party Details</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            padding: 50px;
+        }
+        h1 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ party.name }}</h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <h3>Chair</h3>
+                <p>Name: {% if party.chair %}{{ party.chair.name }}{% else %}None{% endif %}</p>
+            </div>
+            <div class="col-md-4">
+                <h3>Vice-Chair</h3>
+                <p>Name: {% if party.vice_chair %}{{ party.vice_chair.name }}{% else %}None{% endif %}</p>
+            </div>
+            <div class="col-md-4">
+                <h3>Treasurer</h3>
+                <p>Name: {% if party.treasurer %}{{ party.treasurer.name }}{% else %}None{% endif %}</p>
+            </div>
+        </div>
+        <!-- Display the party funds -->
+        <div class="row">
+            <div class="col-md-12">
+                <h3>Funds</h3>
+                <p>${{ "{:,.2f}".format(party.money) }}</p>
+            </div>
+        </div>
+
+        <!-- Leadership Panel Button -->
+        {% if party.chair_id == current_politician.id or party.vice_chair_id == current_politician.id or party.treasurer_id == current_politician.id %}
+            <button id="leadershipPanelButton">Leadership Panel</button>
+        {% endif %}
+
+        <!-- Election Panel -->
+        <div class="container mt-5">
+            <h3>Leadership Election Panel</h3>
+
+            <!-- Debugging: Print out the number of nominations fetched -->
+            <p><strong>Debug:</strong> Number of nominations fetched: {{ nominations|length }}</p>
+
+            <!-- Nominate Self -->
+            <form id="nominateForm">
+                Nominate yourself for: 
+                <select id="position">
+                    <option value="chair">Chair</option>
+                    <option value="vice_chair">Vice-Chair</option>
+                    <option value="treasurer">Treasurer</option>
+                </select>
+                <input type="submit" value="Nominate">
+            </form>
+
+            <!-- List of Nominations and Voting -->
+            <h4>Nominations:</h4>
+            {% for nomination in nominations %}
+                <p>
+                    {{ nomination.politician.name }} ({{ nomination.politician.username }}) for {{ nomination.position }} - Votes: {{ nomination.votes }}
+                    <button class="voteButton" data-nomination-id="{{ nomination.id }}">Vote</button>
+                    
+                    <!-- Withdraw Button -->
+                    {% if nomination.politician_id == current_politician.id %}
+                        <button class="withdrawButton" data-nomination-id="{{ nomination.id }}">Withdraw</button>
+                    {% endif %}
+                </p>
+            {% else %}
+                <!-- This will be displayed if the nominations list is empty -->
+                <p>No nominations found.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Leadership Panel UI -->
+        <div id="leadershipPanel" style="display: none; position: fixed; right: 0; top: 0; width: 30%; height: 100%; background-color: #f9f9f9;">
+            <h3>Leadership Panel</h3>
+            <form id="transactionForm">
+                Amount: <input type="number" id="amount" min="0" step="0.01" required>
+                To: <input type="text" id="recipient" required>
+                <!-- Include the hidden input for the current_politician name -->
+                <input type="hidden" id="current_politician_name" value="{{ current_politician.name }}">
+                <input type="submit" value="Send Funds">
+            </form>
+            <h4>Transaction Log</h4>
+            <ul id="transactionLog">
+                {% for transaction in transactions %}
+                    <li>Successfully transferred ${{ "{:,.2f}".format(transaction.amount) }} to {{ transaction.recipient.name }}.</li>
+                {% endfor %}
+                <!-- New AJAX transactions will be appended here -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $("#leadershipPanelButton").click(function() {
+                $("#leadershipPanel").toggle();
+            });
+
+            $("#transactionForm").submit(function(e) {
+                e.preventDefault();
+                let amount = $("#amount").val();
+                let recipient = $("#recipient").val();
+
+                $.ajax({
+                    type: "POST",
+                    url: "/make_transaction",
+                    data: {
+                        'amount': amount,
+                        'recipient': recipient
+                    },
+                    success: function(response) {
+                        // Append to the transaction log
+                        $("#transactionLog").append('<li>' + response.message + '</li>');
+                    },
+                    error: function(xhr, status, error) {
+                        // Print out the error message
+                        console.error("Error:", xhr.responseText);
+                        alert("Error occurred: " + xhr.responseText);
+                    }
+                });
+            });
+
+            $("#nominateForm").submit(function(e) {
+                e.preventDefault();
+                let position = $("#position").val();
+
+                $.post("/nominate", { position: position }, function(data) {
+                    alert(data.message);
+                    location.reload();
+                });
+            });
+
+            $(".voteButton").click(function() {
+                let nomination_id = $(this).data('nomination-id');
+                
+                $.post("/vote/" + nomination_id, function(data) {
+                    alert(data.message);
+                    location.reload();
+                });
+            });
+
+            $(".withdrawButton").click(function() {
+                let nomination_id = $(this).data('nomination-id');
+                
+                $.post("/withdraw_nomination/" + nomination_id, function(data) {
+                    alert(data.message);
+                    location.reload();
+                });
+            });
+        });
+    </script>
+</body>
+</html>

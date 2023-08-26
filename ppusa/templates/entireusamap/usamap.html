@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>Map Example</title>
+    <script src="mapdata.js"></script>
+    <script src="usmap.js"></script>
+  </head>
+	<body>
+		<div>
+			<h1>Map Of All US States</h1>
+			<div style="max-width: 700px"> <!-- Keep map above fold -->
+				<div id="map"></div>
+			</div>
+{% if 'username' in session %}
+<div class="avatar-circle">
+  <img src="{{ url_for('static', filename='avatars/' + politician.avatar) }}" alt="Avatar">
+</div>
+<a class="logout-btn" href="{{ url_for('logout') }}">Logout</a>
+{% endif %}
+	</body>
+</html>
+      
+    
+
